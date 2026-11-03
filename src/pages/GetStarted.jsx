@@ -52,9 +52,7 @@ function GetStarted() {
     } catch (err) {
       if (err.name === "AbortError") return;
       setIsSubmitting(false);
-      toast.error(
-        "Something went wrong while verifying your CV. Please try again.",
-      );
+      toast.error(err.message);
     }
   }
 
