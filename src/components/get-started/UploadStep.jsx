@@ -4,16 +4,16 @@ import {
   CircleNotch,
   CloudArrowUp,
   FileText,
-  WarningCircle,
   XCircle,
 } from '@phosphor-icons/react'
 import { validateFile } from '../../lib/validation'
+import FieldError from './FieldError'
 
 function formatFileSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function UploadStep({ file, onFileSelect, onFileRemove, onBack, onVerify, isSubmitting, submitError }) {
+function UploadStep({ file, onFileSelect, onFileRemove, onBack, onVerify, isSubmitting }) {
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState('')
   const headingRef = useRef(null)
@@ -120,12 +120,7 @@ function UploadStep({ file, onFileSelect, onFileRemove, onBack, onVerify, isSubm
         </div>
       )}
 
-      {!isSubmitting && (error || submitError) && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-ember-dim">
-          <WarningCircle size={15} weight="bold" />
-          {error || submitError}
-        </p>
-      )}
+      {!isSubmitting && error && <FieldError message={error} />}
 
       <div className="mt-2 flex items-center gap-4">
         <button

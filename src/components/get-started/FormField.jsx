@@ -1,4 +1,4 @@
-import { WarningCircle } from '@phosphor-icons/react'
+import FieldError from './FieldError'
 
 function FormField({
   id,
@@ -35,12 +35,7 @@ function FormField({
           showError ? 'border-ember-dim' : 'border-ink-line'
         }`}
       />
-      {showError && (
-        <p id={`${id}-error`} role="alert" className="flex items-center gap-1.5 text-sm text-ember-dim">
-          <WarningCircle size={15} weight="bold" />
-          {error}
-        </p>
-      )}
+      {showError && <FieldError id={`${id}-error`} message={error} />}
     </div>
   )
 }

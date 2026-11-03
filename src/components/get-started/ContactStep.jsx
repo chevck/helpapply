@@ -1,9 +1,18 @@
 import { useRef, useState, useEffect } from 'react'
-import { validateName, validatePhone } from '../../lib/validation'
+import { EXPERIENCE_OPTIONS, validateExperience, validateName, validatePhone } from '../../lib/validation'
 import FormField from './FormField'
+import SelectField from './SelectField'
 
-function ContactStep({ name, phone, onNameChange, onPhoneChange, onContinue }) {
-  const [touched, setTouched] = useState({ name: false, phone: false })
+function ContactStep({
+  name,
+  phone,
+  experience,
+  onNameChange,
+  onPhoneChange,
+  onExperienceChange,
+  onContinue,
+}) {
+  const [touched, setTouched] = useState({ name: false, phone: false, experience: false })
   const headingRef = useRef(null)
 
   useEffect(() => {
@@ -12,11 +21,12 @@ function ContactStep({ name, phone, onNameChange, onPhoneChange, onContinue }) {
 
   const nameError = validateName(name)
   const phoneError = validatePhone(phone)
+  const experienceError = validateExperience(experience)
 
   function handleSubmit(e) {
     e.preventDefault()
-    setTouched({ name: true, phone: true })
-    if (nameError === '' && phoneError === '') {
+    setTouched({ name: true, phone: true, experience: true })
+    if (nameError === '' && phoneError === '' && experienceError === '') {
       onContinue()
     }
   }
@@ -55,6 +65,18 @@ function ContactStep({ name, phone, onNameChange, onPhoneChange, onContinue }) {
         touched={touched.phone}
         placeholder="+1 (555) 123-4567"
         autoComplete="tel"
+      />
+
+      <SelectField
+        id="years-experience"
+        label="Years of experience"
+        value={experience}
+        onChange={onExperienceChange}
+        onBlur={() => setTouched((t) => ({ ...t, experience: true }))}
+        error={experienceError}
+        touched={touched.experience}
+        options={EXPERIENCE_OPTIONS}
+        placeholder="Select your best estimate"
       />
 
       <button

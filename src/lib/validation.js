@@ -1,5 +1,13 @@
 const PHONE_PATTERN = /^[+]?[\d\s().-]{7,20}$/
 
+export const EXPERIENCE_OPTIONS = [
+  'Less than 1 year',
+  '1-2 years',
+  '3-5 years',
+  '6-10 years',
+  '10+ years',
+]
+
 const ACCEPTED_MIME_TYPES = ['application/pdf']
 const ACCEPTED_EXTENSIONS = ['.pdf']
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
@@ -15,6 +23,11 @@ export function validatePhone(value) {
   const trimmed = value.trim()
   if (trimmed.length === 0) return 'Enter your phone number.'
   if (!PHONE_PATTERN.test(trimmed)) return 'Enter a valid phone number.'
+  return ''
+}
+
+export function validateExperience(value) {
+  if (!value) return 'Select your years of experience.'
   return ''
 }
 
