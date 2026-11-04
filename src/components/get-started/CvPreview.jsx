@@ -91,7 +91,8 @@ function CvPreview({ cv, fileName, onBack, onRegenerate, isRegenerating }) {
       <button
         type="button"
         onClick={onBack}
-        className="flex w-fit items-center gap-2 text-[15px] font-medium text-paper-dim transition-colors hover:text-paper"
+        disabled={isRegenerating}
+        className="flex w-fit items-center gap-2 text-[15px] font-medium text-paper-dim transition-colors hover:text-paper disabled:opacity-50 disabled:hover:text-paper-dim"
       >
         <ArrowLeft size={16} weight="bold" />
         Back to review
@@ -102,7 +103,7 @@ function CvPreview({ cv, fileName, onBack, onRegenerate, isRegenerating }) {
       </p>
 
       <article
-        className={`flex flex-col gap-3 rounded-xl border border-ink-line p-6 transition-opacity ${
+        className={`flex flex-col gap-3 rounded-xl border border-ink-line p-6 transition-opacity [overflow-wrap:anywhere] ${
           isRegenerating ? 'opacity-50' : ''
         }`}
       >

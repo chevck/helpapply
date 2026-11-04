@@ -9,8 +9,9 @@ export const PLACEHOLDER = '[ADD METRIC]'
 function stripInline(line) {
   return line
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
-    .replace(/(\*\*|__)(.+?)\1/g, '$2')
-    .replace(/(\*|_)(.+?)\1/g, '$2')
+    // Emphasis only at word boundaries (CommonMark-style) so emails, handles and 3*4 keep their _ and *.
+    .replace(/(?<!\w)(\*\*|__)(?=\S)(.+?)(?<=\S)\1(?!\w)/g, '$2')
+    .replace(/(?<!\w)(\*|_)(?=\S)(.+?)(?<=\S)\1(?!\w)/g, '$2')
     .replace(/`/g, '')
     .trim()
 }
