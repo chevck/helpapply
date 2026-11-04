@@ -1,17 +1,9 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export async function uploadCv(file, experience, { signal } = {}) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("experience", experience);
-
+async function request(path, init, fallbackMessage) {
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}/cv/upload`, {
-      method: "POST",
-      body: formData,
-      signal,
-    });
+    response = await fetch(`${API_BASE_URL}${path}`, init);
   } catch (err) {
     if (err.name === "AbortError") throw err;
     throw new Error(
@@ -25,9 +17,34 @@ export async function uploadCv(file, experience, { signal } = {}) {
     throw new Error(
       typeof body?.message === "string" && body.message.trim()
         ? body.message
-        : "We couldn't verify your CV. Please try again.",
+        : fallbackMessage,
     );
   }
 
   return response.json().catch(() => null);
+}
+
+export function uploadCv(file, experience, { signal } = {}) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("experience", experience);
+
+  return request(
+    "/cv/upload",
+    { method: "POST", body: formData, signal },
+    "We couldn't verify your CV. Please try again.",
+  );
+}
+
+export function upgradeCv({ text, level, improvements }, { signal } = {}) {
+  return request(
+    "/cv/upgrade",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, level, report: { improvements } }),
+      signal,
+    },
+    "We couldn't update your CV. Please try again.",
+  );
 }
