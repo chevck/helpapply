@@ -1,7 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { upgradeCv, uploadCv } from "../lib/api";
+import { saveCv, upgradeCv, uploadCv } from "../lib/api";
+import { AUTH_REASON, AUTH_STATUS } from "../lib/auth";
+import { fileStem } from "../lib/cvDownload";
+import {
+  clearPendingSave,
+  readPendingSave,
+  stashPendingSave,
+} from "../lib/pendingSave";
 import { STEP } from "../lib/steps";
+import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
 import StepHeader from "../components/get-started/StepHeader";
 import StepProgress from "../components/get-started/StepProgress";
@@ -14,22 +22,62 @@ import CvPreview from "../components/get-started/CvPreview";
 const ease = [0.16, 1, 0.3, 1];
 
 function GetStarted() {
-  const [step, setStep] = useState(STEP.CONTACT);
+  const [pending] = useState(readPendingSave);
+  const [step, setStep] = useState(pending ? STEP.PREVIEW : STEP.CONTACT);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [experience, setExperience] = useState("");
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState(null);
-  const [upgradedCv, setUpgradedCv] = useState(null);
+  const [result, setResult] = useState(pending?.result ?? null);
+  const [upgradedCv, setUpgradedCv] = useState(pending?.upgradedCv ?? null);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const reduce = useReducedMotion();
   const abortRef = useRef(null);
   const toast = useToast();
+  const { status, openAuthModal } = useAuth();
 
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
+
+  const performSave = useCallback(
+    async ({ result: savedResult, upgradedCv: savedCv }) => {
+      setIsSaving(true);
+      try {
+        await saveCv({
+          title: fileStem(savedResult.fileName),
+          level: savedResult.review.level,
+          content: savedCv,
+        });
+        toast.success("Saved to your dashboard.");
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [toast],
+  );
+
+  useEffect(() => {
+    if (status !== AUTH_STATUS.AUTHENTICATED) return;
+    const stashed = readPendingSave();
+    if (!stashed) return;
+    clearPendingSave();
+    queueMicrotask(() => performSave(stashed));
+  }, [status, performSave]);
+
+  function handleSave() {
+    const payload = { result, upgradedCv };
+    if (status === AUTH_STATUS.AUTHENTICATED) {
+      performSave(payload);
+      return;
+    }
+    stashPendingSave(payload);
+    openAuthModal({ reason: AUTH_REASON.SAVE });
+  }
 
   async function handleVerify() {
     if (!file) return;
@@ -172,6 +220,8 @@ function GetStarted() {
                 onBack={() => setStep(STEP.RESULT)}
                 onRegenerate={handleUpgrade}
                 isRegenerating={isUpgrading}
+                onSave={handleSave}
+                isSaving={isSaving}
               />
             </motion.div>
           )}

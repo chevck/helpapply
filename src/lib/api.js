@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 async function request(path, init, fallbackMessage) {
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, init);
+    response = await fetch(`${API_BASE_URL}${path}`, { credentials: "include", ...init });
   } catch (err) {
     if (err.name === "AbortError") throw err;
     throw new Error(
@@ -46,5 +46,72 @@ export function upgradeCv({ text, level, improvements }, { signal } = {}) {
       signal,
     },
     "We couldn't update your CV. Please try again.",
+  );
+}
+
+function jsonRequest(path, method, body, fallbackMessage) {
+  return request(
+    path,
+    {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+    fallbackMessage,
+  );
+}
+
+export function getMe({ signal } = {}) {
+  return request("/auth/me", { signal }, "We couldn't check your session.");
+}
+
+export function signUp({ name, email, password }) {
+  return jsonRequest(
+    "/auth/signup",
+    "POST",
+    { name, email, password },
+    "We couldn't create your account. Please try again.",
+  );
+}
+
+export function logIn({ email, password }) {
+  return jsonRequest(
+    "/auth/login",
+    "POST",
+    { email, password },
+    "We couldn't log you in. Please try again.",
+  );
+}
+
+export function logOut() {
+  return request("/auth/logout", { method: "POST" }, "We couldn't log you out.");
+}
+
+export function oauthStartUrl(provider, returnTo) {
+  return `${API_BASE_URL}/auth/${provider}?returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+export function saveCv({ title, level, content }) {
+  return jsonRequest(
+    "/cvs",
+    "POST",
+    { title, level, content },
+    "We couldn't save your CV. Please try again.",
+  );
+}
+
+export function listSavedCvs({ signal } = {}) {
+  return request("/cvs", { signal }, "We couldn't load your saved CVs.");
+}
+
+export function getSavedCv(id, { signal } = {}) {
+  return request(`/cvs/${id}`, { signal }, "We couldn't load that CV.");
+}
+
+export function deleteSavedCv(id) {
+  return request(
+    `/cvs/${id}`,
+    { method: "DELETE" },
+    "We couldn't delete that CV. Please try again.",
   );
 }

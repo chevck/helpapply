@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useScroll, useTransform } from 'motion/react'
 import { List, X } from '@phosphor-icons/react'
+import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
+import { AUTH_STATUS } from '../lib/auth'
 import Logo from './Logo'
 
 const LINKS = [
@@ -11,9 +14,20 @@ const LINKS = [
 ]
 
 const ease = [0.16, 1, 0.3, 1]
+const accountLinkClass = 'text-[15px] text-paper-dim transition-colors hover:text-paper'
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  const { user, status, openAuthModal, logOut } = useAuth()
+  const toast = useToast()
+
+  async function handleLogOut() {
+    try {
+      await logOut()
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
   const { scrollY } = useScroll()
   const shadowOpacity = useTransform(scrollY, [0, 80], [0, 1])
   const boxShadow = useTransform(
@@ -48,12 +62,22 @@ function Nav() {
         </nav>
 
         <div className="hidden items-center gap-6 lg:flex">
-          <a
-            href="#login"
-            className="text-[15px] text-paper-dim transition-colors hover:text-paper"
-          >
-            Log in
-          </a>
+          {status === AUTH_STATUS.AUTHENTICATED && (
+            <>
+              <span className="text-[15px] text-paper">{user.name}</span>
+              <Link to="/dashboard" className={accountLinkClass}>
+                Dashboard
+              </Link>
+              <button type="button" onClick={handleLogOut} className={accountLinkClass}>
+                Log out
+              </button>
+            </>
+          )}
+          {status === AUTH_STATUS.ANONYMOUS && (
+            <button type="button" onClick={() => openAuthModal()} className={accountLinkClass}>
+              Log in
+            </button>
+          )}
           <Link
             to="/get-started"
             className="rounded-full bg-paper px-5 py-2.5 text-[15px] font-medium text-ink transition-all duration-200 hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] active:translate-y-0"
@@ -104,12 +128,40 @@ function Nav() {
                 ))}
               </nav>
               <div className="mt-3 flex flex-col gap-3 border-t border-ink-line/70 pt-4">
-                <a
-                  href="#login"
-                  className="px-2 text-base text-paper-dim hover:text-paper"
-                >
-                  Log in
-                </a>
+                {status === AUTH_STATUS.AUTHENTICATED && (
+                  <>
+                    <span className="px-2 text-base text-paper">{user.name}</span>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setOpen(false)}
+                      className="px-2 text-base text-paper-dim hover:text-paper"
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpen(false)
+                        handleLogOut()
+                      }}
+                      className="px-2 text-left text-base text-paper-dim hover:text-paper"
+                    >
+                      Log out
+                    </button>
+                  </>
+                )}
+                {status === AUTH_STATUS.ANONYMOUS && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false)
+                      openAuthModal()
+                    }}
+                    className="px-2 text-left text-base text-paper-dim hover:text-paper"
+                  >
+                    Log in
+                  </button>
+                )}
                 <Link
                   to="/get-started"
                   onClick={() => setOpen(false)}

@@ -1,8 +1,11 @@
 import { BLOCK_KIND, parseCvMarkdown, toPlainText } from './cvDocument'
 
+export function fileStem(fileName) {
+  return String(fileName || '').replace(/\.[^.]+$/, '') || 'cv'
+}
+
 function baseName(fileName) {
-  const stem = String(fileName || '').replace(/\.[^.]+$/, '')
-  return `${stem || 'cv'}-updated`
+  return `${fileStem(fileName)}-updated`
 }
 
 function saveBlob(blob, name) {
